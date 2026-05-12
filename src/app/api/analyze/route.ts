@@ -34,7 +34,8 @@ REGLER:
 - Aldri gi eksakte kalorier i teksten, bare estimater og retning
 - Fokuser på: er dette et bra valg akkurat nå?
 - Ta hensyn til hva som er spist i dag (får du historikk)
-- Typisk mål: 1400–1800 kcal/dag for vektnedgang
+- Bruk brukerprofil (hvis tilgjengelig) for å tilpasse kalorianbefaling
+- Uten profil: typisk mål 1400–1800 kcal/dag for vektnedgang
 - Vær oppmuntrende når de gjør gode valg`;
 
 export async function POST(request: NextRequest) {
@@ -43,6 +44,12 @@ export async function POST(request: NextRequest) {
     const text = formData.get("text") as string | null;
     const image = formData.get("image") as File | null;
     const historyJson = formData.get("history") as string | null;
+    const profilJson = formData.get("profil") as string | null;
+    const profil = profilJson ? JSON.parse(profilJson) : null;
+
+    const profilKontekst = profil
+      ? `\nBRUKERPROFIL: ${profil.kjønn}, ${profil.høyde}cm, ${profil.nåværendeVekt}kg → mål ${profil.målvekt}kg (${profil.nåværendeVekt - profil.målvekt}kg å gå)`
+      : "";
 
     const history = historyJson ? JSON.parse(historyJson) : [];
 
@@ -56,8 +63,8 @@ export async function POST(request: NextRequest) {
       .join("\n");
 
     const contextText = todayMeals
-      ? `Dagens måltider så langt:\n${todayMeals}\n\nNytt måltid: ${text || "se bilde"}`
-      : text || "se bilde";
+      ? `${profilKontekst}\nDagens måltider så langt:\n${todayMeals}\n\nNytt måltid: ${text || "se bilde"}`
+      : `${profilKontekst}\n${text || "se bilde"}`;
 
     type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 

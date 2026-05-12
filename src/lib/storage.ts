@@ -15,7 +15,29 @@ export interface Måltid {
   dagsstatus?: Dagsstatus;
 }
 
+export interface Brukerprofil {
+  høyde: number;
+  nåværendeVekt: number;
+  målvekt: number;
+  kjønn: "mann" | "kvinne" | "annet";
+}
+
 const STORAGE_KEY = "matassistent_maaltider";
+const PROFIL_KEY = "matassistent_profil";
+
+export function hentProfil(): Brukerprofil | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(PROFIL_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function lagreProfil(profil: Brukerprofil): void {
+  localStorage.setItem(PROFIL_KEY, JSON.stringify(profil));
+}
 
 export function hentMåltider(): Måltid[] {
   if (typeof window === "undefined") return [];
