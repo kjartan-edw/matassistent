@@ -7,22 +7,22 @@ interface Props {
   antallMåltider: number;
 }
 
-const kcalIkon: Record<string, string> = {
-  lavt: "🔥",
-  moderat: "✅",
-  høyt: "⚠️",
+const kcalConfig: Record<string, { ikon: string; farge: string; bg: string }> = {
+  lavt:    { ikon: "🔥", farge: "#FF9500", bg: "#FFF4E5" },
+  moderat: { ikon: "✅", farge: "#34C759", bg: "#E8F8ED" },
+  høyt:   { ikon: "⚠️", farge: "#FF3B30", bg: "#FFF0EF" },
 };
 
-const proteinIkon: Record<string, string> = {
-  bra: "✅",
-  "litt lavt": "⚠️",
-  lavt: "❌",
+const proteinConfig: Record<string, { ikon: string; farge: string }> = {
+  bra:        { ikon: "✅", farge: "#34C759" },
+  "litt lavt": { ikon: "⚠️", farge: "#FF9500" },
+  lavt:       { ikon: "❌", farge: "#FF3B30" },
 };
 
 export default function DagStatus({ status, antallMåltider }: Props) {
   if (!status && antallMåltider === 0) {
     return (
-      <div className="mx-4 mt-4 rounded-2xl bg-gray-50 p-4 text-center text-sm text-gray-400">
+      <div className="mx-4 mt-3 rounded-2xl px-5 py-4 text-sm text-center" style={{ background: "#fff", color: "#86868b", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
         Ta bilde av første måltid for å se dagens status
       </div>
     );
@@ -30,27 +30,35 @@ export default function DagStatus({ status, antallMåltider }: Props) {
 
   if (!status) return null;
 
+  const kcal = kcalConfig[status.kcalNivå] ?? kcalConfig.moderat;
+  const protein = proteinConfig[status.protein] ?? proteinConfig.bra;
+
   return (
-    <div className="mx-4 mt-4 rounded-2xl bg-green-50 p-4">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-green-700">I dag</p>
-      <div className="mb-3 grid grid-cols-2 gap-2">
-        <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2">
-          <span>{kcalIkon[status.kcalNivå] ?? "📊"}</span>
+    <div
+      className="mx-4 mt-3 rounded-2xl px-5 py-4"
+      style={{ background: "#fff", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}
+    >
+      <p className="mb-3 text-xs font-semibold uppercase tracking-widest" style={{ color: "#86868b" }}>I dag</p>
+
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="rounded-xl px-3 py-2.5 flex items-center gap-2.5" style={{ background: kcal.bg }}>
+          <span className="text-base">{kcal.ikon}</span>
           <div>
-            <p className="text-xs text-gray-500">Inntak</p>
-            <p className="text-sm font-medium capitalize">{status.kcalNivå}</p>
+            <p className="text-xs" style={{ color: "#86868b" }}>Inntak</p>
+            <p className="text-sm font-semibold capitalize" style={{ color: "#1d1d1f" }}>{status.kcalNivå}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2">
-          <span>{proteinIkon[status.protein] ?? "🥩"}</span>
+        <div className="rounded-xl px-3 py-2.5 flex items-center gap-2.5" style={{ background: "#F5F5F7" }}>
+          <span className="text-base">{protein.ikon}</span>
           <div>
-            <p className="text-xs text-gray-500">Protein</p>
-            <p className="text-sm font-medium capitalize">{status.protein}</p>
+            <p className="text-xs" style={{ color: "#86868b" }}>Protein</p>
+            <p className="text-sm font-semibold capitalize" style={{ color: "#1d1d1f" }}>{status.protein}</p>
           </div>
         </div>
       </div>
-      <p className="text-sm text-gray-600">{status.melding}</p>
-      <p className="mt-1 text-xs text-gray-400">
+
+      <p className="text-sm" style={{ color: "#1d1d1f" }}>{status.melding}</p>
+      <p className="mt-1 text-xs" style={{ color: "#86868b" }}>
         Ca. {status.estimertKcal} kcal · {antallMåltider} {antallMåltider === 1 ? "måltid" : "måltider"} i dag
       </p>
     </div>

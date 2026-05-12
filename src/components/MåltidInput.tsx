@@ -41,14 +41,25 @@ export default function MåltidInput({ onSend, loading }: Props) {
     }
   }
 
+  const kanSende = !loading && (!!text.trim() || !!image);
+
   return (
-    <div className="border-t border-gray-100 bg-white p-4">
+    <div
+      className="px-4 pt-3 pb-8"
+      style={{
+        background: "rgba(245,245,247,0.92)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderTop: "1px solid rgba(0,0,0,0.06)",
+      }}
+    >
       {preview && (
-        <div className="relative mb-3 inline-block">
-          <img src={preview} alt="Forhåndsvisning" className="h-24 w-24 rounded-xl object-cover" />
+        <div className="relative mb-2 inline-block">
+          <img src={preview} alt="Forhåndsvisning" className="h-20 w-20 rounded-2xl object-cover" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }} />
           <button
             onClick={fjernBilde}
-            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 text-xs text-white"
+            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full text-xs text-white"
+            style={{ background: "#1d1d1f" }}
           >
             ×
           </button>
@@ -56,61 +67,58 @@ export default function MåltidInput({ onSend, loading }: Props) {
       )}
 
       <div className="flex items-end gap-2">
-        {/* Kamera-knapp (mobil: åpner kamera direkte) */}
+        {/* Kamera */}
         <button
           onClick={() => cameraRef.current?.click()}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gray-100 text-xl transition hover:bg-gray-200"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl text-lg transition-opacity active:opacity-60"
+          style={{ background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
           title="Ta bilde"
         >
           📷
         </button>
-        <input
-          ref={cameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => e.target.files?.[0] && velgBilde(e.target.files[0])}
-        />
+        <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
+          onChange={(e) => e.target.files?.[0] && velgBilde(e.target.files[0])} />
 
-        {/* Galleri-knapp */}
+        {/* Galleri */}
         <button
           onClick={() => fileRef.current?.click()}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gray-100 text-xl transition hover:bg-gray-200"
-          title="Velg bilde fra galleri"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl text-lg transition-opacity active:opacity-60"
+          style={{ background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
+          title="Velg fra galleri"
         >
           🖼️
         </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => e.target.files?.[0] && velgBilde(e.target.files[0])}
-        />
+        <input ref={fileRef} type="file" accept="image/*" className="hidden"
+          onChange={(e) => e.target.files?.[0] && velgBilde(e.target.files[0])} />
 
         {/* Tekstfelt */}
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Skriv hva du spiser, eller ta bilde…"
+          placeholder="Hva spiser du?"
           rows={1}
-          className="flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-green-400 focus:outline-none focus:ring-0"
-          style={{ maxHeight: "120px" }}
+          className="flex-1 resize-none rounded-2xl border-0 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          style={{
+            background: "#fff",
+            color: "#1d1d1f",
+            maxHeight: "120px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+          }}
         />
 
-        {/* Send-knapp */}
+        {/* Send */}
         <button
           onClick={send}
-          disabled={loading || (!text.trim() && !image)}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-green-500 text-white transition hover:bg-green-600 disabled:opacity-40"
+          disabled={!kanSende}
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl text-white transition-all active:scale-95 disabled:opacity-30"
+          style={{ background: kanSende ? "#34C759" : "#86868b" }}
         >
           {loading ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
           ) : (
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
             </svg>
           )}
         </button>
