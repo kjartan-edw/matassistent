@@ -99,11 +99,19 @@ export default function Onboarding({ onFerdig }: Props) {
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:border-green-400 focus:outline-none"
             />
           </div>
-          {profil.nåværendeVekt && profil.målvekt && profil.målvekt < profil.nåværendeVekt && (
-            <div className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
-              {profil.nåværendeVekt - profil.målvekt} kg å jobbe med — veldig realistisk mål.
-            </div>
-          )}
+          {profil.nåværendeVekt && profil.målvekt && profil.målvekt < profil.nåværendeVekt && (() => {
+            const diff = profil.nåværendeVekt! - profil.målvekt!;
+            const melding =
+              diff <= 5 ? "Fin justering — dette går fort med riktige vaner."
+              : diff <= 10 ? "Godt mål — realistisk å nå på noen måneder."
+              : diff <= 20 ? "Et skikkelig prosjekt — vi tar det ett måltid av gangen."
+              : "En livsstilsreise — vi fokuserer på retning, ikke perfeksjon.";
+            return (
+              <div className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+                <span className="font-medium">{diff} kg å gå.</span> {melding}
+              </div>
+            );
+          })()}
         </div>
       ),
       kanGåVidere: !!profil.målvekt,

@@ -12,6 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [feil, setFeil] = useState<string | null>(null);
   const [visOnboarding, setVisOnboarding] = useState(false);
+  const [visHistorikk, setVisHistorikk] = useState(false);
   const bunnenRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,9 +67,11 @@ export default function Home() {
     }
   }
 
-  function grupperPåDato() {
+  const idagStr = new Date().toDateString();
+
+  function grupperPåDato(måltider: Måltid[]) {
     const grupper: Record<string, Måltid[]> = {};
-    for (const m of alleMåltider) {
+    for (const m of måltider) {
       const dato = new Date(m.timestamp).toLocaleDateString("no-NO", {
         weekday: "long",
         day: "numeric",
@@ -80,7 +83,11 @@ export default function Home() {
     return grupper;
   }
 
-  const grupper = grupperPåDato();
+  const tidligereMåltider = alleMåltider.filter(
+    (m) => new Date(m.timestamp).toDateString() !== idagStr
+  );
+  const synligeMåltider = visHistorikk ? alleMåltider : dagensMåltider;
+  const grupper = grupperPåDato(synligeMåltider);
 
   return (
     <div className="flex h-dvh flex-col bg-white">
@@ -98,7 +105,17 @@ export default function Home() {
       <DagStatus status={status} antallMåltider={dagensMåltider.length} />
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {Object.keys(grupper).length === 0 && !loading && (
+        {/* Historikk-knapp */}
+        {tidligereMåltider.length > 0 && (
+          <button
+            onClick={() => setVisHistorikk((v) => !v)}
+            className="mb-4 w-full rounded-xl py-2 text-sm text-gray-400 hover:text-gray-600"
+          >
+            {visHistorikk ? "Skjul tidligere dager ↑" : `Se tidligere dager (${tidligereMåltider.length} måltider) ↓`}
+          </button>
+        )}
+
+        {dagensMåltider.length === 0 && !loading && (
           <div className="mt-8 text-center">
             <p className="text-4xl">🍽️</p>
             <p className="mt-3 text-gray-500">Ta bilde av maten din eller skriv hva du spiser</p>
