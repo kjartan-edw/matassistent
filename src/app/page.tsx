@@ -123,10 +123,8 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="flex justify-start">
-                    <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-gray-100 px-4 py-3 text-sm text-gray-800">
-                      <ReactMarkdown className="prose prose-sm prose-gray max-w-none">
-                        {m.response}
-                      </ReactMarkdown>
+                    <div className="prose prose-sm prose-gray max-w-[85%] rounded-2xl rounded-tl-sm bg-gray-100 px-4 py-3 text-sm text-gray-800">
+                      <ReactMarkdown>{m.response}</ReactMarkdown>
                     </div>
                   </div>
                 </div>
