@@ -114,15 +114,42 @@ export default function Onboarding({ onFerdig }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#F5F5F7" }}>
-      {/* Progress */}
-      <div className="flex gap-1.5 px-6 pt-14">
-        {stegConfig.map((_, i) => (
-          <div
-            key={i}
-            className="h-1 flex-1 rounded-full transition-all duration-300"
-            style={{ background: i <= steg ? "#34C759" : "rgba(0,0,0,0.1)" }}
-          />
-        ))}
+      {/* Topp-rad: tilbake + progress + lukk */}
+      <div className="flex items-center gap-3 px-4 pt-12">
+        {steg > 0 ? (
+          <button
+            onClick={() => setSteg(steg - 1)}
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
+            style={{ background: "rgba(0,0,0,0.06)" }}
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "#1d1d1f" }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        ) : (
+          <div className="h-9 w-9 flex-shrink-0" />
+        )}
+
+        <div className="flex flex-1 gap-1.5">
+          {stegConfig.map((_, i) => (
+            <div
+              key={i}
+              className="h-1 flex-1 rounded-full transition-all duration-300"
+              style={{ background: i <= steg ? "#34C759" : "rgba(0,0,0,0.1)" }}
+            />
+          ))}
+        </div>
+
+        <button
+          onClick={fullFør}
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
+          style={{ background: "rgba(0,0,0,0.06)" }}
+          title="Hopp over"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "#86868b" }}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       <div className="flex flex-1 flex-col px-6 pt-10">
@@ -148,11 +175,6 @@ export default function Onboarding({ onFerdig }: Props) {
         >
           {steg < stegConfig.length - 1 ? "Neste" : "Start"}
         </button>
-        {steg === 0 && (
-          <button onClick={fullFør} className="w-full py-2 text-sm" style={{ color: "#86868b" }}>
-            Hopp over
-          </button>
-        )}
       </div>
     </div>
   );
