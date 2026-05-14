@@ -36,7 +36,8 @@ REGLER FOR ESTIMATER:
 
 REGLER:
 - Bruk brukerprofil (hvis tilgjengelig) for å tilpasse råd
-- Typisk mål: 1400–1800 kcal/dag, 80–120g protein/dag for vektnedgang
+- Dagsmålet i brukerprofilen er beregnet personlig — bruk det som referanse i meldingen
+- Protein-mål: ca. 1g per kg kroppsvekt per dag
 - Vær oppmuntrende når de gjør gode valg`;
 
 export async function POST(request: NextRequest) {
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
     const totaler = totalerJson ? JSON.parse(totalerJson) : null;
 
     const profilKontekst = profil
-      ? `BRUKERPROFIL: ${profil.kjønn}, ${profil.høyde}cm, ${profil.nåværendeVekt}kg → mål ${profil.målvekt}kg`
+      ? `BRUKERPROFIL: ${profil.kjønn}, ${profil.alder} år, ${profil.vekt}kg. Personlig dagsmål: ${profil.dagsmål} kcal`
       : "";
 
     const dagKontekst = totaler

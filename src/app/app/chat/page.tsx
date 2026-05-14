@@ -130,7 +130,7 @@ export default function Home() {
         </Link>
       </header>
 
-      <DagStatus totaler={dagTotaler} antallMåltider={dagensMåltider.length} sisteMelding={dagensMåltider.at(-1)?.response?.split("\n")[0]} />
+      <DagStatus totaler={dagTotaler} antallMåltider={dagensMåltider.length} dagsmål={hentProfil()?.dagsmål} />
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {tidligereMåltider.length > 0 && (

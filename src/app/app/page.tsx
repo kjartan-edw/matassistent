@@ -27,9 +27,12 @@ const kcalBg: Record<string, string> = {
 export default function Oversikt() {
   const [dager, setDager] = useState<DagSummary[]>([]);
   const [visOnboarding, setVisOnboarding] = useState(false);
+  const [dagsmål, setDagsmål] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    if (!hentProfil()) setVisOnboarding(true);
+    const profil = hentProfil();
+    if (!profil) setVisOnboarding(true);
+    else setDagsmål(profil.dagsmål);
 
     const alle = hentMåltider();
     const idagStr = new Date().toDateString();
@@ -107,19 +110,22 @@ export default function Oversikt() {
                 <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#86868b" }}>I dag</p>
                 <p className="text-2xl font-bold mt-0.5" style={{ color: "#1d1d1f", letterSpacing: "-0.02em" }}>
                   {idag?.måltider.length ? (
-                    <span style={{ color: kcalFarge[kcalNivå(idag.totaler.kcal)] }}>
+                    <span style={{ color: kcalFarge[kcalNivå(idag.totaler.kcal, dagsmål)] }}>
                       {idag.totaler.kcal} kcal
                     </span>
                   ) : "Ingen måltider enda"}
                 </p>
+                {dagsmål && idag?.måltider.length ? (
+                  <p className="text-xs mt-0.5" style={{ color: "#86868b" }}>av {dagsmål} kcal dagsmål</p>
+                ) : null}
               </div>
               <div className="text-2xl">🍽️</div>
             </div>
 
             {idag?.måltider.length ? (
               <div className="flex gap-2 flex-wrap">
-                <span className="rounded-full px-3 py-1 text-xs font-medium" style={{ background: kcalBg[kcalNivå(idag.totaler.kcal)], color: kcalFarge[kcalNivå(idag.totaler.kcal)] }}>
-                  {kcalNivå(idag.totaler.kcal)} inntak
+                <span className="rounded-full px-3 py-1 text-xs font-medium" style={{ background: kcalBg[kcalNivå(idag.totaler.kcal, dagsmål)], color: kcalFarge[kcalNivå(idag.totaler.kcal, dagsmål)] }}>
+                  {kcalNivå(idag.totaler.kcal, dagsmål)} inntak
                 </span>
                 <span className="rounded-full px-3 py-1 text-xs font-medium" style={{ background: "#F5F5F7", color: "#86868b" }}>
                   {idag.totaler.protein}g protein
@@ -143,7 +149,7 @@ export default function Oversikt() {
 
         {dager.slice(1).map((dag) => {
           if (dag.måltider.length === 0) return null;
-          const nivå = kcalNivå(dag.totaler.kcal);
+          const nivå = kcalNivå(dag.totaler.kcal, dagsmål);
           const farge = kcalFarge[nivå];
           const bg = kcalBg[nivå];
           return (

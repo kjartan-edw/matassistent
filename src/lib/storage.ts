@@ -18,10 +18,19 @@ export interface DagTotaler {
 }
 
 export interface Brukerprofil {
-  høyde: number;
-  nåværendeVekt: number;
-  målvekt: number;
   kjønn: "mann" | "kvinne" | "annet";
+  alder: number;
+  vekt: number;
+  dagsmål: number; // kcal per dag, beregnet ved registrering
+}
+
+export function beregnDagsmål(kjønn: string, alder: number, vekt: number): number {
+  // Mifflin-St Jeor med gjennomsnittshøyde, lett aktivitet, -400 kcal underskudd
+  const høyde = kjønn === "mann" ? 178 : kjønn === "kvinne" ? 165 : 171;
+  const juster = kjønn === "mann" ? 5 : kjønn === "kvinne" ? -161 : -78;
+  const bmr = 10 * vekt + 6.25 * høyde - 5 * alder + juster;
+  const mål = Math.round((bmr * 1.4 - 400) / 50) * 50;
+  return Math.max(1200, Math.min(2400, mål));
 }
 
 const STORAGE_KEY = "matassistent_maaltider";
@@ -76,9 +85,10 @@ export function beregnDagTotaler(måltider: Måltid[]): DagTotaler {
   );
 }
 
-export function kcalNivå(kcal: number): "lavt" | "moderat" | "høyt" {
-  if (kcal < 800) return "lavt";
-  if (kcal < 1600) return "moderat";
+export function kcalNivå(kcal: number, dagsmål?: number): "lavt" | "moderat" | "høyt" {
+  const mål = dagsmål ?? 1600;
+  if (kcal < mål * 0.5) return "lavt";
+  if (kcal <= mål * 1.05) return "moderat";
   return "høyt";
 }
 
