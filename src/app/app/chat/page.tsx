@@ -43,6 +43,13 @@ export default function Home() {
 
     try {
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        setFeil(`Serverfeil ${res.status}${txt ? ": " + txt.slice(0, 120) : ""}`);
+        return;
+      }
+
       const data = await res.json();
 
       if (data.error) {
@@ -61,8 +68,8 @@ export default function Home() {
 
       lagreMåltid(nyttMåltid);
       setAlleMåltider(hentMåltider());
-    } catch {
-      setFeil("Kunne ikke nå serveren. Prøv igjen.");
+    } catch (e) {
+      setFeil("Nettverksfeil: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setLoading(false);
     }

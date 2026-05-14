@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 
+export const maxDuration = 30;
+
 const client = new Anthropic();
 
 const SYSTEM_PROMPT = `Du er en praktisk og vennlig spise-assistent for folk som vil ned 5–15 kg. Du hjelper med hverdagsbeslutninger rundt mat.

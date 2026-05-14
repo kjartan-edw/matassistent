@@ -15,10 +15,28 @@ export default function MåltidInput({ onSend, loading }: Props) {
   const cameraRef = useRef<HTMLInputElement>(null);
 
   function velgBilde(file: File) {
-    setImage(file);
-    const reader = new FileReader();
-    reader.onload = (e) => setPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const maxSide = 1200;
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return;
+          const komprimert = new File([blob], file.name, { type: "image/jpeg" });
+          setImage(komprimert);
+          setPreview(canvas.toDataURL("image/jpeg", 0.85));
+        },
+        "image/jpeg",
+        0.85
+      );
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
   }
 
   function fjernBilde() {
