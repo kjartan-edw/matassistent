@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 
 interface Props {
   onSend: (text: string, image?: File, imagePreview?: string) => void;
@@ -13,6 +13,14 @@ export default function MåltidInput({ onSend, loading }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  }, []);
 
   function velgBilde(file: File) {
     const img = new Image();
@@ -50,6 +58,9 @@ export default function MåltidInput({ onSend, loading }: Props) {
     setText("");
     setImage(null);
     setPreview(null);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -88,11 +99,14 @@ export default function MåltidInput({ onSend, loading }: Props) {
         {/* Kamera */}
         <button
           onClick={() => cameraRef.current?.click()}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl text-lg transition-opacity active:opacity-60"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl transition-opacity active:opacity-60"
           style={{ background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
           title="Ta bilde"
         >
-          📷
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
         </button>
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
           onChange={(e) => e.target.files?.[0] && velgBilde(e.target.files[0])} />
@@ -100,19 +114,24 @@ export default function MåltidInput({ onSend, loading }: Props) {
         {/* Galleri */}
         <button
           onClick={() => fileRef.current?.click()}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl text-lg transition-opacity active:opacity-60"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl transition-opacity active:opacity-60"
           style={{ background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
           title="Velg fra galleri"
         >
-          🖼️
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
         </button>
         <input ref={fileRef} type="file" accept="image/*" className="hidden"
           onChange={(e) => e.target.files?.[0] && velgBilde(e.target.files[0])} />
 
         {/* Tekstfelt */}
         <textarea
+          ref={textareaRef}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => { setText(e.target.value); autoResize(); }}
           onKeyDown={handleKeyDown}
           placeholder="Hva spiser du?"
           rows={1}
@@ -120,7 +139,7 @@ export default function MåltidInput({ onSend, loading }: Props) {
           style={{
             background: "#fff",
             color: "#1d1d1f",
-            maxHeight: "120px",
+            overflowY: "auto",
             boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
           }}
         />
