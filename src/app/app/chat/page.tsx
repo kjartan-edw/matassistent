@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import MåltidInput from "@/components/MåltidInput";
 import DagStatus from "@/components/DagStatus";
 import Onboarding from "@/components/Onboarding";
-import { hentMåltider, lagreMåltid, sisteStatus, hentProfil, Måltid } from "@/lib/storage";
+import { hentMåltider, lagreMåltid, hentProfil, beregnDagTotaler, Måltid } from "@/lib/storage";
 
 export default function Home() {
   const [alleMåltider, setAlleMåltider] = useState<Måltid[]>([]);
@@ -28,7 +28,7 @@ export default function Home() {
   const dagensMåltider = alleMåltider.filter(
     (m) => new Date(m.timestamp).toDateString() === new Date().toDateString()
   );
-  const status = sisteStatus(dagensMåltider);
+  const dagTotaler = beregnDagTotaler(dagensMåltider);
 
   async function sendMåltid(text: string, image?: File, imagePreview?: string) {
     setLoading(true);
@@ -37,9 +37,11 @@ export default function Home() {
     const formData = new FormData();
     if (text) formData.append("text", text);
     if (image) formData.append("image", image);
-    formData.append("history", JSON.stringify(alleMåltider));
     const profil = hentProfil();
     if (profil) formData.append("profil", JSON.stringify(profil));
+    if (dagTotaler.kcal > 0 || dagTotaler.protein > 0) {
+      formData.append("dagTotaler", JSON.stringify(dagTotaler));
+    }
 
     try {
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
@@ -63,7 +65,7 @@ export default function Home() {
         text: text || undefined,
         imagePreview: imagePreview || undefined,
         response: data.feedback,
-        dagsstatus: data.dagsstatus,
+        estimater: data.estimater,
       };
 
       lagreMåltid(nyttMåltid);
@@ -128,7 +130,7 @@ export default function Home() {
         </Link>
       </header>
 
-      <DagStatus status={status} antallMåltider={dagensMåltider.length} />
+      <DagStatus totaler={dagTotaler} antallMåltider={dagensMåltider.length} sisteMelding={dagensMåltider.at(-1)?.response?.split("\n")[0]} />
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {tidligereMåltider.length > 0 && (

@@ -13,31 +13,30 @@ TONE:
 - Realistisk og kontekstuelt
 - Norsk alltid
 
-SVAR FORMAT (bruk alltid denne strukturen):
+SVAR FORMAT:
 1. Én setning vurdering av måltidet (maks 15 ord)
-2. 1-2 konkrete råd eller justeringer (hvis aktuelt)
-3. Oppdatert dagsstatus
+2. 1-2 konkrete råd (hvis aktuelt)
+3. Estimater for DETTE måltidet + melding om dagen
 
-DAGSSTATUS FORMAT (alltid til slutt, som JSON inni <dagsstatus> tags):
-<dagsstatus>
+ESTIMAT FORMAT (alltid til slutt, som JSON inni <estimat> tags):
+<estimat>
 {
-  "estimertKcal": 850,
-  "kcalNivå": "lavt",
-  "protein": "bra",
-  "romForMer": true,
-  "melding": "Du har fint rom for en god middag"
+  "kcal": 350,
+  "protein": 8,
+  "melding": "Du har god plass til middag"
 }
-</dagsstatus>
+</estimat>
 
-kcalNivå: "lavt" | "moderat" | "høyt"
-protein: "bra" | "litt lavt" | "lavt"
+REGLER FOR ESTIMATER:
+- kcal og protein gjelder KUN dette ene måltidet du ser/leser om nå
+- Appen summerer totalen for hele dagen selv — du trenger ikke tenke på det
+- Vær realistisk: grønn te = 2 kcal, 0g protein. En skyr = 130 kcal, 11g protein
+- meldingen skal handle om hele dagen basert på akkumulert kontekst du får
+- Aldri gi høye protein-estimater for mat uten protein
 
 REGLER:
-- Aldri gi eksakte kalorier i teksten, bare estimater og retning
-- Fokuser på: er dette et bra valg akkurat nå?
-- Ta hensyn til hva som er spist i dag (får du historikk)
-- Bruk brukerprofil (hvis tilgjengelig) for å tilpasse kalorianbefaling
-- Uten profil: typisk mål 1400–1800 kcal/dag for vektnedgang
+- Bruk brukerprofil (hvis tilgjengelig) for å tilpasse råd
+- Typisk mål: 1400–1800 kcal/dag, 80–120g protein/dag for vektnedgang
 - Vær oppmuntrende når de gjør gode valg`;
 
 export async function POST(request: NextRequest) {
@@ -45,31 +44,23 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const text = formData.get("text") as string | null;
     const image = formData.get("image") as File | null;
-    const historyJson = formData.get("history") as string | null;
     const profilJson = formData.get("profil") as string | null;
+    const totalerJson = formData.get("dagTotaler") as string | null;
+
     const profil = profilJson ? JSON.parse(profilJson) : null;
+    const totaler = totalerJson ? JSON.parse(totalerJson) : null;
 
     const profilKontekst = profil
-      ? `\nBRUKERPROFIL: ${profil.kjønn}, ${profil.høyde}cm, ${profil.nåværendeVekt}kg → mål ${profil.målvekt}kg (${profil.nåværendeVekt - profil.målvekt}kg å gå)`
+      ? `BRUKERPROFIL: ${profil.kjønn}, ${profil.høyde}cm, ${profil.nåværendeVekt}kg → mål ${profil.målvekt}kg`
       : "";
 
-    const history = historyJson ? JSON.parse(historyJson) : [];
+    const dagKontekst = totaler
+      ? `AKKUMULERT I DAG (beregnet av appen): ca. ${totaler.kcal} kcal, ca. ${totaler.protein}g protein`
+      : "FØRSTE MÅLTID I DAG: ingen tidligere inntak";
 
-    const todayMeals = history
-      .filter((m: { timestamp: string }) => {
-        const mealDate = new Date(m.timestamp).toDateString();
-        const today = new Date().toDateString();
-        return mealDate === today;
-      })
-      .map((m: { text?: string; response?: string }) => `- ${m.text || "bilde"}: ${m.response?.split("<dagsstatus>")[0]?.trim()}`)
-      .join("\n");
-
-    const contextText = todayMeals
-      ? `${profilKontekst}\nDagens måltider så langt:\n${todayMeals}\n\nNytt måltid: ${text || "se bilde"}`
-      : `${profilKontekst}\n${text || "se bilde"}`;
+    const contextText = `${profilKontekst}\n${dagKontekst}\n\nNytt måltid: ${text || "se bilde"}`;
 
     type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
-
     type ContentBlock =
       | { type: "text"; text: string }
       | { type: "image"; source: { type: "base64"; media_type: ImageMediaType; data: string } };
@@ -93,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-5-20250929",
-      max_tokens: 500,
+      max_tokens: 400,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content }],
     });
@@ -101,20 +92,23 @@ export async function POST(request: NextRequest) {
     const responseText =
       response.content[0].type === "text" ? response.content[0].text : "";
 
-    const statusMatch = responseText.match(/<dagsstatus>([\s\S]*?)<\/dagsstatus>/);
-    let dagsstatus = null;
+    const estimatMatch = responseText.match(/<estimat>([\s\S]*?)<\/estimat>/);
+    let estimater = null;
+    let melding = "";
     let feedbackText = responseText;
 
-    if (statusMatch) {
+    if (estimatMatch) {
       try {
-        dagsstatus = JSON.parse(statusMatch[1]);
-        feedbackText = responseText.replace(/<dagsstatus>[\s\S]*?<\/dagsstatus>/, "").trim();
+        const parsed = JSON.parse(estimatMatch[1]);
+        estimater = { kcal: parsed.kcal ?? 0, protein: parsed.protein ?? 0 };
+        melding = parsed.melding ?? "";
+        feedbackText = responseText.replace(/<estimat>[\s\S]*?<\/estimat>/, "").trim();
       } catch {
         // keep raw text if parse fails
       }
     }
 
-    return NextResponse.json({ feedback: feedbackText, dagsstatus });
+    return NextResponse.json({ feedback: feedbackText, estimater, melding });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error("API error:", msg);
