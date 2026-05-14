@@ -116,7 +116,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ feedback: feedbackText, dagsstatus });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Noe gikk galt" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("API error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
