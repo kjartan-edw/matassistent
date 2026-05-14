@@ -31,7 +31,7 @@ export default function Oversikt() {
 
   useEffect(() => {
     const profil = hentProfil();
-    if (!profil) setVisOnboarding(true);
+    if (!profil || !profil.dagsmål) setVisOnboarding(true);
     else setDagsmål(profil.dagsmål);
 
     const alle = hentMåltider();
@@ -73,7 +73,7 @@ export default function Oversikt() {
 
   return (
     <div className="flex min-h-dvh flex-col" style={{ background: "#F5F5F7" }}>
-      {visOnboarding && <Onboarding onFerdig={() => setVisOnboarding(false)} />}
+      {visOnboarding && <Onboarding onFerdig={() => { setVisOnboarding(false); setDagsmål(hentProfil()?.dagsmål); }} />}
 
       {/* Header */}
       <header
@@ -85,6 +85,17 @@ export default function Oversikt() {
           borderBottom: "1px solid rgba(0,0,0,0.06)",
         }}
       >
+        <button
+          onClick={() => setVisOnboarding(true)}
+          className="flex h-9 w-9 items-center justify-center rounded-full transition-opacity active:opacity-60"
+          style={{ background: "rgba(0,0,0,0.06)" }}
+          title="Rediger profil"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86868b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
         <h1 className="text-base font-semibold" style={{ color: "#1d1d1f", letterSpacing: "-0.01em" }}>
           Matassistent
         </h1>
