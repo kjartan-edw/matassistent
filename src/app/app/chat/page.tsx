@@ -47,19 +47,21 @@ export default function Home() {
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
 
       if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        setFeil(`Serverfeil ${res.status}${txt ? ": " + txt.slice(0, 120) : ""}`);
+        let errorMsg = "Noe gikk galt. Prøv igjen.";
+        try {
+          const data = await res.json();
+          if (data.error === "rate_limit") errorMsg = "For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen.";
+          else if (data.error) errorMsg = data.error;
+        } catch { /* ignore */ }
+        setFeil(errorMsg);
         return;
       }
 
       const data = await res.json();
-
       if (data.error) {
-        setFeil(
-          data.error === "rate_limit"
-            ? "For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen."
-            : data.error
-        );
+        setFeil(data.error === "rate_limit"
+          ? "For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen."
+          : data.error);
         return;
       }
 
@@ -75,7 +77,9 @@ export default function Home() {
       lagreMåltid(nyttMåltid);
       setAlleMåltider(hentMåltider());
     } catch (e) {
-      setFeil("Nettverksfeil: " + (e instanceof Error ? e.message : String(e)));
+      const msg = e instanceof Error ? e.message : String(e);
+      const erRateLimit = msg.toLowerCase().includes("quota") || msg.toLowerCase().includes("rate");
+      setFeil(erRateLimit ? "For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen." : "Nettverksfeil. Prøv igjen.");
     } finally {
       setLoading(false);
     }
@@ -134,7 +138,12 @@ export default function Home() {
         </Link>
       </header>
 
-      <DagStatus totaler={dagTotaler} antallMåltider={dagensMåltider.length} dagsmål={hentProfil()?.dagsmål} />
+      <DagStatus
+    totaler={dagTotaler}
+    antallMåltider={dagensMåltider.length}
+    dagsmål={hentProfil()?.dagsmål}
+    proteinmål={hentProfil()?.vekt ? Math.round(hentProfil()!.vekt) : undefined}
+  />
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {tidligereMåltider.length > 0 && (
