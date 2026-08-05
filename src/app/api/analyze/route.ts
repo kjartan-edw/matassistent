@@ -5,40 +5,18 @@ export const maxDuration = 30;
 
 const client = new Anthropic();
 
-const SYSTEM_PROMPT = `Du er en praktisk og vennlig spise-assistent for folk som vil ned 5–15 kg. Du hjelper med hverdagsbeslutninger rundt mat.
+const SYSTEM_PROMPT = `Vennlig mat-assistent for vektnedgang. Svar alltid på norsk.
 
-TONE:
-- Kort, direkte og varm
-- Aldri moraliserende eller streng
-- Realistisk og kontekstuelt
-- Norsk alltid
+SVAR: 1 setning vurdering, max 1-2 konkrete råd, deretter estimat-tag.
 
-SVAR FORMAT:
-1. Én setning vurdering av måltidet (maks 15 ord)
-2. 1-2 konkrete råd (hvis aktuelt)
-3. Estimater for DETTE måltidet + melding om dagen
-
-ESTIMAT FORMAT (alltid til slutt, som JSON inni <estimat> tags):
-<estimat>
-{
-  "kcal": 350,
-  "protein": 8,
-  "melding": "Du har god plass til middag"
-}
-</estimat>
-
-REGLER FOR ESTIMATER:
-- kcal og protein gjelder KUN dette ene måltidet du ser/leser om nå
-- Appen summerer totalen for hele dagen selv — du trenger ikke tenke på det
-- Vær realistisk: grønn te = 2 kcal, 0g protein. En skyr = 130 kcal, 11g protein
-- meldingen skal handle om hele dagen basert på akkumulert kontekst du får
-- Aldri gi høye protein-estimater for mat uten protein
+ESTIMAT (alltid til slutt):
+<estimat>{"kcal": 350, "protein": 8, "melding": "God plass til middag"}</estimat>
 
 REGLER:
-- Bruk brukerprofil (hvis tilgjengelig) for å tilpasse råd
-- Dagsmålet i brukerprofilen er beregnet personlig — bruk det som referanse i meldingen
-- Protein-mål: ca. 1g per kg kroppsvekt per dag
-- Vær oppmuntrende når de gjør gode valg`;
+- kcal/protein gjelder KUN dette måltidet
+- Bruk dagsmål fra brukerprofil som referanse i meldingen
+- Protein-mål: ca. 1g per kg kroppsvekt
+- Vær realistisk og oppmuntrende`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,14 +30,14 @@ export async function POST(request: NextRequest) {
     const totaler = totalerJson ? JSON.parse(totalerJson) : null;
 
     const profilKontekst = profil
-      ? `BRUKERPROFIL: ${profil.kjønn}, ${profil.alder} år, ${profil.vekt}kg. Personlig dagsmål: ${profil.dagsmål} kcal`
+      ? `Bruker: ${profil.kjønn}, ${profil.alder}år, ${profil.vekt}kg, dagsmål ${profil.dagsmål}kcal`
       : "";
 
     const dagKontekst = totaler
-      ? `AKKUMULERT I DAG (beregnet av appen): ca. ${totaler.kcal} kcal, ca. ${totaler.protein}g protein`
-      : "FØRSTE MÅLTID I DAG: ingen tidligere inntak";
+      ? `I dag: ${totaler.kcal}kcal, ${totaler.protein}g protein`
+      : "Første måltid i dag";
 
-    const contextText = `${profilKontekst}\n${dagKontekst}\n\nNytt måltid: ${text || "se bilde"}`;
+    const contextText = `${profilKontekst}. ${dagKontekst}. Måltid: ${text || "se bilde"}`;
 
     type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
     type ContentBlock =
@@ -85,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     const response = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 400,
+      max_tokens: 300,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content }],
     });
@@ -95,24 +73,26 @@ export async function POST(request: NextRequest) {
 
     const estimatMatch = responseText.match(/<estimat>([\s\S]*?)<\/estimat>/);
     let estimater = null;
-    let melding = "";
     let feedbackText = responseText;
 
     if (estimatMatch) {
       try {
         const parsed = JSON.parse(estimatMatch[1]);
         estimater = { kcal: parsed.kcal ?? 0, protein: parsed.protein ?? 0 };
-        melding = parsed.melding ?? "";
         feedbackText = responseText.replace(/<estimat>[\s\S]*?<\/estimat>/, "").trim();
       } catch {
         // keep raw text if parse fails
       }
     }
 
-    return NextResponse.json({ feedback: feedbackText, estimater, melding });
+    return NextResponse.json({ feedback: feedbackText, estimater });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error("API error:", msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    const erRateLimit = msg.toLowerCase().includes("quota") || msg.toLowerCase().includes("rate") || msg.toLowerCase().includes("limit");
+    return NextResponse.json(
+      { error: erRateLimit ? "rate_limit" : msg },
+      { status: 500 }
+    );
   }
 }

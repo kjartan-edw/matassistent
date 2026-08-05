@@ -27,7 +27,7 @@ export default function MåltidInput({ onSend, loading }: Props) {
     const url = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      const maxSide = 1200;
+      const maxSide = 800;
       const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
       canvas.width = img.width * scale;
       canvas.height = img.height * scale;
@@ -40,7 +40,7 @@ export default function MåltidInput({ onSend, loading }: Props) {
           setPreview(canvas.toDataURL("image/jpeg", 0.85));
         },
         "image/jpeg",
-        0.85
+        0.75
       );
       URL.revokeObjectURL(url);
     };

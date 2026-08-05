@@ -55,7 +55,11 @@ export default function Home() {
       const data = await res.json();
 
       if (data.error) {
-        setFeil(data.error);
+        setFeil(
+          data.error === "rate_limit"
+            ? "For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen."
+            : data.error
+        );
         return;
       }
 
