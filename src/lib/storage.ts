@@ -29,7 +29,7 @@ export function beregnDagsmål(kjønn: string, alder: number, vekt: number): num
   const høyde = kjønn === "mann" ? 178 : kjønn === "kvinne" ? 165 : 171;
   const juster = kjønn === "mann" ? 5 : kjønn === "kvinne" ? -161 : -78;
   const bmr = 10 * vekt + 6.25 * høyde - 5 * alder + juster;
-  const mål = Math.round((bmr * 1.4 - 400) / 50) * 50;
+  const mål = Math.round((bmr * 1.4 - 600) / 50) * 50;
   return Math.max(1200, Math.min(2400, mål));
 }
 
