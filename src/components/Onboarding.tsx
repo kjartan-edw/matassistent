@@ -28,11 +28,6 @@ export default function Onboarding({ onFerdig }: Props) {
     onFerdig();
   }
 
-  const kalkulertMål =
-    kjønn && Number(alder) > 0 && Number(vekt) > 0 && aktivitet
-      ? beregnDagsmål(kjønn, Number(alder), Number(vekt), aktivitet)
-      : null;
-
   const stegConfig = [
     {
       tittel: "Hei! La oss bli kjent.",
@@ -106,10 +101,10 @@ export default function Onboarding({ onFerdig }: Props) {
             </button>
           ))}
 
-          {kalkulertMål && (
+          {aktivitet && kjønn && Number(alder) > 0 && Number(vekt) > 0 && (
             <div className="rounded-2xl px-4 py-3.5 mt-2" style={{ background: "#e8f8ed" }}>
               <p className="text-sm font-semibold" style={{ color: "#248A3D" }}>
-                Ditt daglige mål: ca. {kalkulertMål} kcal
+                Ditt daglige mål: ca. {beregnDagsmål(kjønn, Number(alder), Number(vekt), aktivitet)} kcal
               </p>
               <p className="text-xs mt-0.5" style={{ color: "#34C759" }}>
                 Ca. 600 kcal underskudd per dag — godt tempo for vektnedgang.
