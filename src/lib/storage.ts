@@ -17,19 +17,27 @@ export interface DagTotaler {
   protein: number;
 }
 
+export type Aktivitetsnivå = "lav" | "moderat" | "høy";
+
 export interface Brukerprofil {
   kjønn: "mann" | "kvinne" | "annet";
   alder: number;
   vekt: number;
+  aktivitet: Aktivitetsnivå;
   dagsmål: number; // kcal per dag, beregnet ved registrering
 }
 
-export function beregnDagsmål(kjønn: string, alder: number, vekt: number): number {
-  // Mifflin-St Jeor med gjennomsnittshøyde, lett aktivitet, -400 kcal underskudd
+const aktivitetMultiplikator: Record<Aktivitetsnivå, number> = {
+  lav: 1.2,
+  moderat: 1.4,
+  høy: 1.6,
+};
+
+export function beregnDagsmål(kjønn: string, alder: number, vekt: number, aktivitet: Aktivitetsnivå = "moderat"): number {
   const høyde = kjønn === "mann" ? 178 : kjønn === "kvinne" ? 165 : 171;
   const juster = kjønn === "mann" ? 5 : kjønn === "kvinne" ? -161 : -78;
   const bmr = 10 * vekt + 6.25 * høyde - 5 * alder + juster;
-  const mål = Math.round((bmr * 1.4 - 600) / 50) * 50;
+  const mål = Math.round((bmr * aktivitetMultiplikator[aktivitet] - 600) / 50) * 50;
   return Math.max(1200, Math.min(2400, mål));
 }
 

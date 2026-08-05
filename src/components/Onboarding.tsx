@@ -1,35 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { lagreProfil, Brukerprofil, beregnDagsmål } from "@/lib/storage";
+import { lagreProfil, Brukerprofil, Aktivitetsnivå, beregnDagsmål } from "@/lib/storage";
 
 interface Props {
   onFerdig: () => void;
 }
+
+const aktivitetValg: { nivå: Aktivitetsnivå; label: string; beskrivelse: string }[] = [
+  { nivå: "lav", label: "Lav", beskrivelse: "Stillesittende jobb, lite bevegelse til daglig" },
+  { nivå: "moderat", label: "Moderat", beskrivelse: "Noe trening eller aktiv hverdag 2–3 dager/uke" },
+  { nivå: "høy", label: "Høy", beskrivelse: "Aktiv jobb eller trening 4–5 dager/uke" },
+];
 
 export default function Onboarding({ onFerdig }: Props) {
   const [steg, setSteg] = useState(0);
   const [kjønn, setKjønn] = useState<Brukerprofil["kjønn"] | null>(null);
   const [alder, setAlder] = useState<string>("");
   const [vekt, setVekt] = useState<string>("");
+  const [aktivitet, setAktivitet] = useState<Aktivitetsnivå | null>(null);
 
   function fullFør() {
-    if (kjønn && Number(alder) > 0 && Number(vekt) > 0) {
-      const dagsmål = beregnDagsmål(kjønn, Number(alder), Number(vekt));
-      lagreProfil({ kjønn, alder: Number(alder), vekt: Number(vekt), dagsmål });
+    if (kjønn && Number(alder) > 0 && Number(vekt) > 0 && aktivitet) {
+      const dagsmål = beregnDagsmål(kjønn, Number(alder), Number(vekt), aktivitet);
+      lagreProfil({ kjønn, alder: Number(alder), vekt: Number(vekt), aktivitet, dagsmål });
     }
     onFerdig();
   }
 
   const kalkulertMål =
-    kjønn && Number(alder) > 0 && Number(vekt) > 0
-      ? beregnDagsmål(kjønn, Number(alder), Number(vekt))
+    kjønn && Number(alder) > 0 && Number(vekt) > 0 && aktivitet
+      ? beregnDagsmål(kjønn, Number(alder), Number(vekt), aktivitet)
       : null;
 
   const stegConfig = [
     {
       tittel: "Hei! La oss bli kjent.",
-      undertittel: "Tre raske spørsmål, så setter vi et personlig mål.",
+      undertittel: "Noen raske spørsmål, så setter vi et personlig mål.",
       innhold: (
         <div className="space-y-3">
           <p className="text-sm font-medium" style={{ color: "#86868b" }}>Hva er kjønnet ditt?</p>
@@ -38,7 +45,7 @@ export default function Onboarding({ onFerdig }: Props) {
               <button
                 key={k}
                 onClick={() => setKjønn(k)}
-                className="rounded-2xl border-2 py-4 text-sm font-semibold capitalize transition-all"
+                className="rounded-2xl border-2 py-4 text-sm font-semibold transition-all"
                 style={{
                   borderColor: kjønn === k ? "#34C759" : "rgba(0,0,0,0.08)",
                   background: kjønn === k ? "#e8f8ed" : "#fff",
@@ -55,7 +62,7 @@ export default function Onboarding({ onFerdig }: Props) {
     },
     {
       tittel: "Alder og vekt",
-      undertittel: "Vi bruker dette til å sette ditt personlige kalorimål.",
+      undertittel: "Brukes til å beregne hvilemetabolismen din.",
       innhold: (
         <div className="space-y-4">
           {[
@@ -75,20 +82,43 @@ export default function Onboarding({ onFerdig }: Props) {
               />
             </div>
           ))}
+        </div>
+      ),
+      kanGåVidere: Number(alder) > 0 && Number(vekt) > 0,
+    },
+    {
+      tittel: "Hvor aktiv er du?",
+      undertittel: "Velg det som passer hverdagen din best.",
+      innhold: (
+        <div className="space-y-3">
+          {aktivitetValg.map(({ nivå, label, beskrivelse }) => (
+            <button
+              key={nivå}
+              onClick={() => setAktivitet(nivå)}
+              className="w-full rounded-2xl border-2 px-4 py-4 text-left transition-all"
+              style={{
+                borderColor: aktivitet === nivå ? "#34C759" : "rgba(0,0,0,0.08)",
+                background: aktivitet === nivå ? "#e8f8ed" : "#fff",
+              }}
+            >
+              <p className="text-sm font-semibold" style={{ color: aktivitet === nivå ? "#248A3D" : "#1d1d1f" }}>{label}</p>
+              <p className="text-xs mt-0.5" style={{ color: "#86868b" }}>{beskrivelse}</p>
+            </button>
+          ))}
 
           {kalkulertMål && (
-            <div className="rounded-2xl px-4 py-3.5" style={{ background: "#e8f8ed" }}>
+            <div className="rounded-2xl px-4 py-3.5 mt-2" style={{ background: "#e8f8ed" }}>
               <p className="text-sm font-semibold" style={{ color: "#248A3D" }}>
                 Ditt daglige mål: ca. {kalkulertMål} kcal
               </p>
-              <p className="text-sm mt-0.5" style={{ color: "#34C759" }}>
-                Passe til å gå ned jevnt uten å sulte seg.
+              <p className="text-xs mt-0.5" style={{ color: "#34C759" }}>
+                Ca. 600 kcal underskudd per dag — godt tempo for vektnedgang.
               </p>
             </div>
           )}
         </div>
       ),
-      kanGåVidere: Number(alder) > 0 && Number(vekt) > 0,
+      kanGåVidere: !!aktivitet,
     },
   ];
 
@@ -96,7 +126,6 @@ export default function Onboarding({ onFerdig }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#F5F5F7" }}>
-      {/* Topp-rad: tilbake + progress + lukk */}
       <div className="flex items-center gap-3 px-4 pt-12">
         {steg > 0 ? (
           <button
@@ -135,10 +164,7 @@ export default function Onboarding({ onFerdig }: Props) {
       </div>
 
       <div className="flex flex-1 flex-col px-6 pt-10">
-        <h2
-          className="text-3xl font-bold tracking-tight"
-          style={{ color: "#1d1d1f", letterSpacing: "-0.02em" }}
-        >
+        <h2 className="text-3xl font-bold tracking-tight" style={{ color: "#1d1d1f", letterSpacing: "-0.02em" }}>
           {aktivtSteg.tittel}
         </h2>
         <p className="mt-2 text-base" style={{ color: "#86868b" }}>{aktivtSteg.undertittel}</p>

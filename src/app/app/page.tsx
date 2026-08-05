@@ -31,7 +31,7 @@ export default function Oversikt() {
 
   useEffect(() => {
     const profil = hentProfil();
-    if (!profil || !profil.dagsmål) setVisOnboarding(true);
+    if (!profil || !profil.dagsmål || !profil.aktivitet) setVisOnboarding(true);
     else setDagsmål(profil.dagsmål);
 
     const alle = hentMåltider();
