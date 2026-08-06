@@ -47,6 +47,11 @@ export default function Home() {
     if (dagTotaler.kcal > 0 || dagTotaler.protein > 0) {
       formData.append("dagTotaler", JSON.stringify(dagTotaler));
     }
+    const historikk = dagensMåltider.slice(-5).map(m => ({
+      text: m.text,
+      response: m.response,
+    }));
+    if (historikk.length > 0) formData.append("historikk", JSON.stringify(historikk));
 
     try {
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
@@ -202,7 +207,13 @@ export default function Home() {
                         <path d="M18 6L6 18M6 6l12 12" />
                       </svg>
                     </button>
-                    <div className="max-w-[80%] overflow-hidden rounded-2xl rounded-tr-sm" style={{ background: "#1d1d1f", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>
+                    <div
+                      className="max-w-[80%] overflow-hidden rounded-2xl rounded-tr-sm"
+                      style={{
+                        background: m.estimater ? "#1d1d1f" : "rgba(0,0,0,0.45)",
+                        boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
+                      }}
+                    >
                       {m.imagePreview && (
                         <img
                           src={m.imagePreview}
@@ -239,6 +250,12 @@ export default function Home() {
             </div>
           </div>
         ))}
+
+        {dagensMåltider.some(m => m.estimater) && !loading && (
+          <p className="text-center text-xs px-6 py-2" style={{ color: "#86868b" }}>
+            Spør om hva du bør spise videre, eller logg neste måltid
+          </p>
+        )}
 
         {loading && (
           <div className="flex justify-start">

@@ -13,22 +13,28 @@ DIN STIL:
 - Ros konkret når noe faktisk er bra
 - Gi ett nyttig råd når det er relevant, ikke generisk skryt
 
-VURDER MATEN ÆRLIG:
-- Hva tilfører dette faktisk? (næring, metthet, protein, fiber — eller bare sukker/tomme kalorier?)
-- Passer det inn i dagen deres så langt?
-- Hva ville vært et bedre alternativ, om relevant?
+DU HAR TO MODI:
 
-SVAR FORMAT (kort og kontant):
-1. Én ærlig setning om hva dette er/gjør
-2. Maks ett konkret råd eller kommentar (ikke alltid nødvendig)
-3. Estimat-tag til slutt
+**MODUS 1 — Nytt måltid:**
+Brukeren logger mat (bilde, matnavn, beskrivelse av hva de spiste).
+- Gi en kort ærlig analyse
+- Avslutt ALLTID med estimat-taggen
 
-ESTIMAT (alltid til slutt, på én linje):
-<estimat>{"kcal": 350, "protein": 8, "melding": "Du har god plass til middag"}</estimat>
+**MODUS 2 — Spørsmål og råd:**
+Brukeren stiller et spørsmål, vil ha råd eller kommenterer noe.
+- Svar som en personlig coach med full kontekst om dagen deres
+- Bruk samtalehistorikken aktivt ("Du har spist X, så til middag bør du...")
+- Inkluder ALDRI estimat-taggen i dette tilfellet
+
+VIKTIG:
+- Still ALDRI oppfølgingsspørsmål selv — estimer fra det du har
+- Gjett aldri ingredienser brukeren ikke har nevnt
+
+ESTIMAT (kun for nye måltider, alltid sist):
+<estimat>{"kcal": 350, "protein": 8}</estimat>
 
 ESTIMAT-REGLER:
 - kcal/protein gjelder KUN dette ene måltidet
-- Bruk brukerens dagsmål som referanse i meldingen
 - Vær realistisk: saftis = ~80 kcal, 0g protein. Ikke rund opp for å være snill`;
 
 export async function POST(request: NextRequest) {
@@ -39,20 +45,33 @@ export async function POST(request: NextRequest) {
     const profilJson = formData.get("profil") as string | null;
     const totalerJson = formData.get("dagTotaler") as string | null;
 
+    const historikkJson = formData.get("historikk") as string | null;
+
     const profil = profilJson ? JSON.parse(profilJson) : null;
     const totaler = totalerJson ? JSON.parse(totalerJson) : null;
+    const historikk: Array<{ text?: string; response: string }> = historikkJson
+      ? JSON.parse(historikkJson)
+      : [];
 
     const profilKontekst = profil
       ? `Bruker: ${profil.kjønn}, ${profil.alder}år, ${profil.vekt}kg, dagsmål ${profil.dagsmål}kcal`
       : "";
 
     const dagKontekst = totaler
-      ? `I dag: ${totaler.kcal}kcal, ${totaler.protein}g protein`
+      ? `I dag totalt: ${totaler.kcal}kcal, ${totaler.protein}g protein`
       : "Første måltid i dag";
 
-    const contextText = text && image
-      ? `${profilKontekst}. ${dagKontekst}. Brukerens beskrivelse (stol på denne): "${text}". Bildet er kun visuell referanse — ikke anta ingredienser brukeren ikke har nevnt.`
-      : `${profilKontekst}. ${dagKontekst}. Måltid: ${text || "se bilde"}`;
+    const historikkTekst = historikk.length > 0
+      ? "\n\nSamtalehistorikk i dag:\n" + historikk.map(h =>
+          `[Bruker]: ${h.text || "(bilde)"}\n[Matassistent]: ${h.response.slice(0, 200)}`
+        ).join("\n---\n")
+      : "";
+
+    const måltidTekst = text && image
+      ? `Brukerens beskrivelse (stol på denne): "${text}". Bildet er kun visuell referanse.`
+      : text ? `Bruker: "${text}"` : "Se bildet.";
+
+    const contextText = `${profilKontekst}. ${dagKontekst}.${historikkTekst}\n\n${måltidTekst}`;
 
     type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
     type ContentBlock =
@@ -78,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     const response = await client.messages.create({
       model: image ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6",
-      max_tokens: 300,
+      max_tokens: 400,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content }],
     });
