@@ -12,7 +12,6 @@ export default function MåltidInput({ onSend, loading }: Props) {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const autoResize = useCallback(() => {
@@ -96,32 +95,16 @@ export default function MåltidInput({ onSend, loading }: Props) {
       )}
 
       <div className="flex items-end gap-2">
-        {/* Kamera */}
-        <button
-          onClick={() => cameraRef.current?.click()}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl transition-opacity active:opacity-60"
-          style={{ background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
-          title="Ta bilde"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-            <circle cx="12" cy="13" r="4"/>
-          </svg>
-        </button>
-        <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
-          onChange={(e) => e.target.files?.[0] && velgBilde(e.target.files[0])} />
-
-        {/* Galleri */}
+        {/* Vedlegg — åpner native iOS-picker (kamera + bibliotek) */}
         <button
           onClick={() => fileRef.current?.click()}
           className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl transition-opacity active:opacity-60"
           style={{ background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
-          title="Velg fra galleri"
+          title="Legg til bilde"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="3"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
           </svg>
         </button>
         <input ref={fileRef} type="file" accept="image/*" className="hidden"
