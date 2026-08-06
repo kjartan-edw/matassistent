@@ -74,7 +74,7 @@ export default function Home() {
         timestamp: new Date().toISOString(),
         text: text || undefined,
         imagePreview: imagePreview || undefined,
-        response: data.feedback,
+        response: data.feedback ?? "",
         estimater: data.estimater,
       };
 
