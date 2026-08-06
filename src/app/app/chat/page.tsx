@@ -51,14 +51,20 @@ export default function Home() {
     try {
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
 
-      const data = await res.json();
+      let data: { feedback?: string; estimater?: { kcal: number; protein: number }; error?: string; debug_status?: number } = {};
+      try {
+        data = await res.json();
+      } catch {
+        setFeil(`Serverfeil (${res.status}). Prøv igjen.`);
+        return;
+      }
 
       if (!res.ok || data.error) {
-        const err = data?.error ?? "Ukjent feil";
+        const err = data.error ?? "Ukjent feil";
         if (err === "rate_limit") {
           setFeil("For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen.");
         } else {
-          setFeil(`Feil: ${err}${data?.debug_status ? ` (status ${data.debug_status})` : ""}`);
+          setFeil(`Feil (${data.debug_status ?? res.status}): ${err}`);
         }
         return;
       }
