@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import MåltidInput from "@/components/MåltidInput";
 import DagStatus from "@/components/DagStatus";
 import Onboarding from "@/components/Onboarding";
-import { hentMåltider, lagreMåltid, hentProfil, beregnDagTotaler, Måltid } from "@/lib/storage";
+import { hentMåltider, lagreMåltid, slettMåltid, hentProfil, beregnDagTotaler, Måltid } from "@/lib/storage";
 
 export default function Home() {
   const [alleMåltider, setAlleMåltider] = useState<Måltid[]>([]);
@@ -29,6 +29,11 @@ export default function Home() {
     (m) => new Date(m.timestamp).toDateString() === new Date().toDateString()
   );
   const dagTotaler = beregnDagTotaler(dagensMåltider);
+
+  function slettOgOppdater(id: string) {
+    slettMåltid(id);
+    setAlleMåltider(hentMåltider());
+  }
 
   async function sendMåltid(text: string, image?: File, imagePreview?: string) {
     setLoading(true);
@@ -133,8 +138,11 @@ export default function Home() {
 
         <h1 className="text-base font-semibold" style={{ color: "#1d1d1f", letterSpacing: "-0.01em" }}>I dag</h1>
 
-        <Link href="/app" className="flex h-9 w-9 items-center justify-center rounded-full text-lg" style={{ background: "#e8f8ed" }}>
-          🥗
+        <Link href="/app" className="flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "#e8f8ed" }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34C759" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
         </Link>
       </header>
 
@@ -159,10 +167,13 @@ export default function Home() {
         {dagensMåltider.length === 0 && !loading && (
           <div className="mt-12 text-center px-4">
             <div
-              className="inline-flex h-16 w-16 items-center justify-center rounded-3xl text-3xl mb-4"
+              className="inline-flex h-16 w-16 items-center justify-center rounded-3xl mb-4"
               style={{ background: "#fff", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}
             >
-              🍽️
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34C759" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
             </div>
             <p className="font-medium" style={{ color: "#1d1d1f" }}>Hva spiser du?</p>
             <p className="mt-1 text-sm" style={{ color: "#86868b" }}>Ta bilde eller skriv hva du spiser</p>
@@ -180,7 +191,18 @@ export default function Home() {
             <div className="space-y-3">
               {måltider.map((m) => (
                 <div key={m.id} className="space-y-2">
-                  <div className="flex justify-end">
+                  {/* Bruker-boble med slett-knapp */}
+                  <div className="flex justify-end items-start gap-2">
+                    <button
+                      onClick={() => slettOgOppdater(m.id)}
+                      className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-60"
+                      style={{ background: "rgba(0,0,0,0.06)" }}
+                      title="Slett måltid"
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#86868b" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
                     <div className="max-w-[80%] space-y-2">
                       {m.imagePreview && (
                         <img
@@ -200,12 +222,20 @@ export default function Home() {
                       )}
                     </div>
                   </div>
+                  {/* AI-svar */}
                   <div className="flex justify-start">
                     <div
                       className="prose prose-sm max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-3 text-sm"
                       style={{ background: "#fff", color: "#1d1d1f", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}
                     >
                       <ReactMarkdown>{m.response}</ReactMarkdown>
+                      {m.estimater && (
+                        <div className="mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold" style={{ background: "#e8f8ed", color: "#248A3D" }}>
+                          <span>+{m.estimater.kcal} kcal</span>
+                          <span style={{ color: "#34C759" }}>·</span>
+                          <span>{m.estimater.protein}g protein</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

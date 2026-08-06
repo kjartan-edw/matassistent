@@ -68,6 +68,11 @@ export function hentMåltider(): Måltid[] {
   }
 }
 
+export function slettMåltid(id: string): void {
+  const alle = hentMåltider();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(alle.filter((m) => m.id !== id)));
+}
+
 export function lagreMåltid(måltid: Måltid): void {
   const alle = hentMåltider();
   alle.push(måltid);
