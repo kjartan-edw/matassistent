@@ -201,6 +201,35 @@ export default function Oversikt() {
         {dager.slice(1).every(d => d.måltider.length === 0) && (
           <p className="text-sm text-center py-6" style={{ color: "#86868b" }}>Ingen historikk enda</p>
         )}
+
+        {/* Ukesoversikt */}
+        {(() => {
+          const dagerMedData = dager.filter(d => d.måltider.length > 0);
+          if (dagerMedData.length < 2) return null;
+          const snittKcal = Math.round(dagerMedData.reduce((s, d) => s + d.totaler.kcal, 0) / dagerMedData.length);
+          const dagerInnenforMål = dagsmål ? dagerMedData.filter(d => d.totaler.kcal <= dagsmål * 1.05).length : null;
+          const snittProtein = Math.round(dagerMedData.reduce((s, d) => s + d.totaler.protein, 0) / dagerMedData.length);
+          return (
+            <div className="rounded-2xl px-4 py-4 mt-2" style={{ background: "#fff", boxShadow: "0 1px 6px rgba(0,0,0,0.05)" }}>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#86868b" }}>
+                Siste {dagerMedData.length} dager
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Snitt kcal", verdi: `${snittKcal}`, enhet: "kcal/dag" },
+                  { label: "Innenfor mål", verdi: dagerInnenforMål !== null ? `${dagerInnenforMål}/${dagerMedData.length}` : "—", enhet: "dager" },
+                  { label: "Snitt protein", verdi: `${snittProtein}`, enhet: "g/dag" },
+                ].map(({ label, verdi, enhet }) => (
+                  <div key={label} className="rounded-xl px-3 py-2.5 text-center" style={{ background: "#F2F2F7" }}>
+                    <p className="text-xs mb-0.5" style={{ color: "#86868b" }}>{label}</p>
+                    <p className="text-base font-bold" style={{ color: "#1d1d1f" }}>{verdi}</p>
+                    <p className="text-xs" style={{ color: "#86868b" }}>{enhet}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

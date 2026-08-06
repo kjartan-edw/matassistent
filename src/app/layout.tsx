@@ -15,6 +15,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Matassistent",
   description: "Din personlige spise-coach",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Matassistent",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+    icon: "/icon-512.png",
+  },
 };
 
 export const viewport = {
