@@ -202,20 +202,17 @@ export default function Home() {
                         <path d="M18 6L6 18M6 6l12 12" />
                       </svg>
                     </button>
-                    <div className="max-w-[80%] space-y-2">
+                    <div className="max-w-[80%] overflow-hidden rounded-2xl rounded-tr-sm" style={{ background: "#1d1d1f", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>
                       {m.imagePreview && (
                         <img
                           src={m.imagePreview}
                           alt="Måltid"
-                          className="ml-auto h-40 w-40 rounded-2xl object-cover"
-                          style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}
+                          className="w-full object-cover"
+                          style={{ maxHeight: 200, display: "block" }}
                         />
                       )}
                       {m.text && (
-                        <div
-                          className="rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm text-white"
-                          style={{ background: "#1d1d1f" }}
-                        >
+                        <div className="px-4 py-2.5 text-sm text-white">
                           {m.text}
                         </div>
                       )}

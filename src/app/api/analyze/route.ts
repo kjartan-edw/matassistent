@@ -50,7 +50,9 @@ export async function POST(request: NextRequest) {
       ? `I dag: ${totaler.kcal}kcal, ${totaler.protein}g protein`
       : "Første måltid i dag";
 
-    const contextText = `${profilKontekst}. ${dagKontekst}. Måltid: ${text || "se bilde"}`;
+    const contextText = text && image
+      ? `${profilKontekst}. ${dagKontekst}. Brukerens beskrivelse (stol på denne): "${text}". Bildet er kun visuell referanse — ikke anta ingredienser brukeren ikke har nevnt.`
+      : `${profilKontekst}. ${dagKontekst}. Måltid: ${text || "se bilde"}`;
 
     type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
     type ContentBlock =
