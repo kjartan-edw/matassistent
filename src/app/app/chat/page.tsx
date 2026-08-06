@@ -51,22 +51,15 @@ export default function Home() {
     try {
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
 
-      if (!res.ok) {
-        let errorMsg = "Noe gikk galt. Prøv igjen.";
-        try {
-          const data = await res.json();
-          if (data.error === "rate_limit") errorMsg = "For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen.";
-          else if (data.error) errorMsg = data.error;
-        } catch { /* ignore */ }
-        setFeil(errorMsg);
-        return;
-      }
-
       const data = await res.json();
-      if (data.error) {
-        setFeil(data.error === "rate_limit"
-          ? "For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen."
-          : data.error);
+
+      if (!res.ok || data.error) {
+        const err = data?.error ?? "Ukjent feil";
+        if (err === "rate_limit") {
+          setFeil("For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen.");
+        } else {
+          setFeil(`Feil: ${err}${data?.debug_status ? ` (status ${data.debug_status})` : ""}`);
+        }
         return;
       }
 

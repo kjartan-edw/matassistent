@@ -101,10 +101,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ feedback: feedbackText, estimater });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error("API error:", msg);
+    const status = error instanceof Anthropic.APIError ? error.status : null;
+    console.error("API error status:", status, "message:", msg);
     const erRateLimit = error instanceof Anthropic.APIError && error.status === 429;
     return NextResponse.json(
-      { error: erRateLimit ? "rate_limit" : msg },
+      { error: erRateLimit ? "rate_limit" : msg, debug_status: status },
       { status: 500 }
     );
   }
