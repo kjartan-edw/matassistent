@@ -80,8 +80,10 @@ export default function Home() {
 
       lagreMåltid(nyttMåltid);
       setAlleMåltider(hentMåltider());
-    } catch {
-      setFeil("Nettverksfeil. Prøv igjen.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      const erTimeout = msg.toLowerCase().includes("timeout") || msg.toLowerCase().includes("aborted") || msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("load failed");
+      setFeil(erTimeout ? "Forespørselen tok for lang tid. Prøv igjen (tekstbeskrivelse er raskere enn bilde)." : `Nettverksfeil: ${msg}`);
     } finally {
       setLoading(false);
     }
