@@ -35,7 +35,7 @@ export default function Home() {
     setAlleMåltider(hentMåltider());
   }
 
-  async function sendMåltid(text: string, image?: File, imagePreview?: string) {
+  async function sendMåltid(text: string, image?: File, imagePreview?: string, måltidstype?: string) {
     setLoading(true);
     setFeil(null);
 
@@ -52,6 +52,7 @@ export default function Home() {
       response: m.response,
     }));
     if (historikk.length > 0) formData.append("historikk", JSON.stringify(historikk));
+    if (måltidstype) formData.append("måltidstype", måltidstype);
 
     try {
       const res = await fetch("/api/analyze", { method: "POST", body: formData });

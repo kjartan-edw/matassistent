@@ -3,14 +3,26 @@
 import { useRef, useState, useCallback } from "react";
 
 interface Props {
-  onSend: (text: string, image?: File, imagePreview?: string) => void;
+  onSend: (text: string, image?: File, imagePreview?: string, måltidstype?: string) => void;
   loading: boolean;
+}
+
+const TYPER = ["Frokost", "Lunsj", "Middag", "Kvelds", "Snacks"] as const;
+
+function gjetType(): string {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 10) return "Frokost";
+  if (h >= 10 && h < 14) return "Lunsj";
+  if (h >= 14 && h < 17) return "Snacks";
+  if (h >= 17 && h < 21) return "Middag";
+  return "Kvelds";
 }
 
 export default function MåltidInput({ onSend, loading }: Props) {
   const [text, setText] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [type, setType] = useState<string>(gjetType());
   const fileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -53,10 +65,11 @@ export default function MåltidInput({ onSend, loading }: Props) {
 
   function send() {
     if (!text.trim() && !image) return;
-    onSend(text, image ?? undefined, preview ?? undefined);
+    onSend(text, image ?? undefined, preview ?? undefined, type);
     setText("");
     setImage(null);
     setPreview(null);
+    setType(gjetType());
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -73,7 +86,7 @@ export default function MåltidInput({ onSend, loading }: Props) {
 
   return (
     <div
-      className="px-4 pt-3 pb-8"
+      className="px-4 pt-2 pb-8"
       style={{
         background: "rgba(245,245,247,0.92)",
         backdropFilter: "blur(20px)",
@@ -81,6 +94,24 @@ export default function MåltidInput({ onSend, loading }: Props) {
         borderTop: "1px solid rgba(0,0,0,0.06)",
       }}
     >
+      {/* Måltidstype-chips */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+        {TYPER.map((t) => (
+          <button
+            key={t}
+            onClick={() => setType(t)}
+            className="flex-shrink-0 rounded-full px-3.5 py-1 text-xs font-semibold transition-all active:scale-95"
+            style={
+              type === t
+                ? { background: "#1d1d1f", color: "#fff" }
+                : { background: "rgba(0,0,0,0.06)", color: "#86868b" }
+            }
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
       {preview && (
         <div className="relative mb-2 inline-block">
           <img src={preview} alt="Forhåndsvisning" className="h-20 w-20 rounded-2xl object-cover" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }} />

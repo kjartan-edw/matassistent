@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
     const profilJson = formData.get("profil") as string | null;
     const totalerJson = formData.get("dagTotaler") as string | null;
 
+    const måltidstype = formData.get("måltidstype") as string | null;
     const historikkJson = formData.get("historikk") as string | null;
 
     const profil = profilJson ? JSON.parse(profilJson) : null;
@@ -61,6 +62,8 @@ export async function POST(request: NextRequest) {
       ? `I dag totalt: ${totaler.kcal}kcal, ${totaler.protein}g protein`
       : "Første måltid i dag";
 
+    const måltidstypeKontekst = måltidstype ? `Måltidstype: ${måltidstype}` : "";
+
     const historikkTekst = historikk.length > 0
       ? "\n\nSamtalehistorikk i dag:\n" + historikk.map(h =>
           `[Bruker]: ${h.text || "(bilde)"}\n[Matassistent]: ${h.response.slice(0, 200)}`
@@ -71,7 +74,7 @@ export async function POST(request: NextRequest) {
       ? `Brukerens beskrivelse (stol på denne): "${text}". Bildet er kun visuell referanse.`
       : text ? `Bruker: "${text}"` : "Se bildet.";
 
-    const contextText = `${profilKontekst}. ${dagKontekst}.${historikkTekst}\n\n${måltidTekst}`;
+    const contextText = `${profilKontekst}. ${dagKontekst}. ${måltidstypeKontekst}.${historikkTekst}\n\n${måltidTekst}`;
 
     type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
     type ContentBlock =
