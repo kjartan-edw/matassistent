@@ -79,7 +79,19 @@ export function lagreMåltid(måltid: Måltid): void {
   const grense = new Date();
   grense.setDate(grense.getDate() - 90);
   const filtrert = alle.filter((m) => new Date(m.timestamp) > grense);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtrert));
+
+  const idagStr = new Date().toDateString();
+  const klargjort = filtrert.map((m) =>
+    new Date(m.timestamp).toDateString() === idagStr ? m : { ...m, imagePreview: undefined }
+  );
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(klargjort));
+  } catch {
+    // Fortsatt fullt — fjern alle bildepreviews og prøv igjen
+    const utenBilder = klargjort.map((m) => ({ ...m, imagePreview: undefined }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(utenBilder));
+  }
 }
 
 export function hentDagensMåltider(): Måltid[] {
