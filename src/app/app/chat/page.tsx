@@ -81,10 +81,8 @@ export default function Home() {
 
       lagreMåltid(nyttMåltid);
       setAlleMåltider(hentMåltider());
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      const erRateLimit = msg.toLowerCase().includes("quota") || msg.toLowerCase().includes("rate");
-      setFeil(erRateLimit ? "For mange forespørsler på kort tid. Vent 30 sekunder og prøv igjen." : "Nettverksfeil. Prøv igjen.");
+    } catch {
+      setFeil("Nettverksfeil. Prøv igjen.");
     } finally {
       setLoading(false);
     }

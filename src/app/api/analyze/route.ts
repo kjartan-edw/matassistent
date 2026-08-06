@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error("API error:", msg);
-    const erRateLimit = msg.toLowerCase().includes("quota") || msg.toLowerCase().includes("rate") || msg.toLowerCase().includes("limit");
+    const erRateLimit = error instanceof Anthropic.APIError && error.status === 429;
     return NextResponse.json(
       { error: erRateLimit ? "rate_limit" : msg },
       { status: 500 }
