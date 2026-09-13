@@ -54,6 +54,13 @@ export default function Home() {
     if (historikk.length > 0) formData.append("historikk", JSON.stringify(historikk));
     if (måltidstype) formData.append("måltidstype", måltidstype);
 
+    // Spørsmålsdeteksjon: spørsmålstegn, ingen bilde, og ikke bare et matnavn
+    const erSpørsmål = !image && !!text && (
+      text.trim().endsWith("?") ||
+      /^(hva|hv|kan |bør |burde |hvordan|når |hvilken|er det|vil du|gi meg|anbefal|tips|råd|hjelp)/i.test(text.trim())
+    );
+    if (erSpørsmål) formData.append("erSpørsmål", "true");
+
     try {
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
 

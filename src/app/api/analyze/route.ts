@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
     const totalerJson = formData.get("dagTotaler") as string | null;
 
     const måltidstype = formData.get("måltidstype") as string | null;
+    const erSpørsmål = formData.get("erSpørsmål") === "true";
     const historikkJson = formData.get("historikk") as string | null;
 
     const profil = profilJson ? JSON.parse(profilJson) : null;
@@ -70,9 +71,11 @@ export async function POST(request: NextRequest) {
         ).join("\n---\n")
       : "";
 
-    const måltidTekst = text && image
-      ? `Brukerens beskrivelse (stol på denne): "${text}". Bildet er kun visuell referanse.`
-      : text ? `Bruker: "${text}"` : "Se bildet.";
+    const måltidTekst = erSpørsmål
+      ? `SPØRSMÅL (ikke nytt måltid — IKKE inkluder estimat): "${text}"`
+      : text && image
+        ? `Brukerens beskrivelse (stol på denne): "${text}". Bildet er kun visuell referanse.`
+        : text ? `Bruker: "${text}"` : "Se bildet.";
 
     const contextText = `${profilKontekst}. ${dagKontekst}. ${måltidstypeKontekst}.${historikkTekst}\n\n${måltidTekst}`;
 
@@ -99,7 +102,7 @@ export async function POST(request: NextRequest) {
     content.push({ type: "text", text: contextText });
 
     const response = await client.messages.create({
-      model: image ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6",
+      model: "claude-sonnet-5",
       max_tokens: 400,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content }],
